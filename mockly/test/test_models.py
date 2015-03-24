@@ -74,3 +74,57 @@ class TestPizza(unittest.TestCase):
 
         pizza.temperature = -2000.0
         self.assertAlmostEqual(ABSOLUTE_ZERO_IN_F, pizza.temperature)
+
+    def test_prepare(self):
+        """
+        We wrote some module code, we can use mock here to "wave away" that module,
+        letting tests for that specific module run in other test functions.  We can focus
+        on only the level of the prepare() method here, particularly on the order of operations,
+        adhering to the contract of other function calls.
+        """
+        with mock.patch('mockly.models.Box.__new__') as box_ctor:
+            pizza = Pizza()
+            pizza._cook = mock.Mock() # wave our hands about the _cook function
+
+            result = pizza.prepare()
+
+            # First, we assert that _cook is called on our pizza object.
+            pizza._cook.assert_called_once_with()
+            # Next, we assert that a new Box object is created, initialized with the pizza object
+            # __new__ is called with the class as the first argument, then the arguments to __init__
+            box_ctor.assert_called_once_with(Box, pizza)
+            # Last, assert that the thing returned by prepare() is the result of Box.__new__
+            self.assertEqual(box_ctor.return_value, result)
+
+    def test_cook(self):
+        """
+        We don't want to actually wait for sleep (or another long function) to run, let's mock it out.
+        """
+        with mock.patch('mockly.models.time.sleep') as sleep:
+            pizza = Pizza()
+
+            pizza._cook()
+
+            # sleep should have been called 4 times - 4 passes of loop to go from 100 to 500 in
+            # 100 degree increments
+            sleep.assert_has_calls([
+                mock.call(0.5),
+                mock.call(0.5),
+                mock.call(0.5),
+                mock.call(0.5)
+            ])
+            # the pizza should be cooked now
+            self.assertAlmostEqual(500.0, pizza.temperature)
+
+
+class TestTopping(unittest.TestCase):
+    def test_initialize(self):
+        topping = Topping('Pepperoni')
+        self.assertEqual('Pepperoni', topping.name)
+
+    def test_getter_setter(self):
+        topping = Topping('Pepperoni')
+        self.assertEqual('Pepperoni', topping.name)
+
+        topping.name = 'Fried Egg'
+        self.assertEqual('Fried Egg', topping.name)
