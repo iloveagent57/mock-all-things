@@ -18,3 +18,12 @@ Some paraphrased highlights from that answer:
 Another good point about the business value of unit tests: http://www.daedtech.com/intro-to-unit-testing-10-the-business-value-of-unit-tests
 
 One of the key points therein: In the modern software development world, it's generally accepted (probably) that you should write unit tests for most of your code.  Unit tests make us look legitimate, and having a robust suite of unit tests probably helps recruit people to work with you.
+
+# How to Run this Code Example
+This requires python virtualenv to be installed on your machine
+```
+cd mock-all-things/
+mkdir env
+virtualenv --python=/usr/bin/python2.7 --no-site-packages env/
+pip install -r requirements.txt
+```
