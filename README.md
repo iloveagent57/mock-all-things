@@ -27,3 +27,9 @@ mkdir env
 virtualenv --python=/usr/bin/python2.7 --no-site-packages env/
 pip install -r requirements.txt
 ```
+
+# TODO
+* Something for side effect
+* Test something that returns a generator
+* Put return_value, side_effect inside Mock() init
+* call_args_list
