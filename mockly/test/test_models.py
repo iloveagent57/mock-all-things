@@ -91,7 +91,7 @@ class TestPizza(unittest.TestCase):
         on only the level of the prepare() method here, particularly on the order of operations,
         adhering to the contract of other function calls.
         """
-        with mock.patch('mockly.models.Order.__new__') as order_ctor:
+        with mock.patch('mockly.models.Order') as order_class:
             pizza = Pizza()
             pizza._cook = mock.Mock() # wave our hands about the _cook function
 
@@ -100,10 +100,9 @@ class TestPizza(unittest.TestCase):
             # First, we assert that _cook is called on our pizza object.
             pizza._cook.assert_called_once_with()
             # Next, we assert that a new Order object is created, initialized with the pizza object
-            # __new__ is called with the class as the first argument, then the arguments to __init__
-            order_ctor.assert_called_once_with(Order, [pizza])
-            # Last, assert that the thing returned by prepare() is the result of Order.__new__
-            self.assertEqual(order_ctor.return_value, result)
+            order_class.assert_called_once_with([pizza])
+            # Last, assert that the thing returned by prepare() is the result of Order()
+            self.assertEqual(order_class.return_value, result)
 
     def test_cook(self):
         """
@@ -167,7 +166,7 @@ class TestPartyTime(unittest.TestCase):
         # We want to be able to test predictable results, so we mock out randomness
         with mock.patch('mockly.models.random.random') as random_number, \
              mock.patch('mockly.models.random.sample') as random_sample, \
-             mock.patch('mockly.models.Pizza.__new__') as pizza_ctor:
+             mock.patch('mockly.models.Pizza') as pizza_class:
             # In the most complex case, we'll have a random number > 0.95.
             # This should make a pie with 1 worst topping, 4 weak toppings,
             # and 8 best toppings (not 9 b/c of the min of the list length
@@ -204,10 +203,9 @@ class TestPartyTime(unittest.TestCase):
             # we can look at the arguments provided to the Pizza constructor
             # first dimension - which call was it
             # second dimension - 0 for args, 1 for kwargs
-            pizza_call_args = pizza_ctor.call_args_list[0][0]
-            self.assertEqual(Pizza, pizza_call_args[0]) # first arg to __new__ is class
+            pizza_call_args = pizza_class.call_args_list[0][0]
             # we can't control the order of the key, value pairs returned by iteritems,
             # so just compare args as sets.  
             self.assertEqual(set([olive, onion, pepper, mushroom, broccoli, bacon, pepperoni,
                                   meatball, sausage, ham, moar_cheese, anchovy, egg]),
-                             set(pizza_call_args[1:]))
+                             set(pizza_call_args))
