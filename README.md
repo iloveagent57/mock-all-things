@@ -1,6 +1,20 @@
 # mock-all-things
 Examples of using mock for python unit tests
 
+Mock for python 2.7: http://www.voidspace.org.uk/python/mock/ (Lots of great examples in here, too)
+
+From the library's homepage:
+
+"mock is a library for testing in Python. It allows you to replace parts of your system under test with mock objects and make assertions about how they have been used.
+
+mock is now part of the Python standard library, available as unittest.mock in Python 3.3 onwards.
+
+mock provides a core Mock class removing the need to create a host of stubs throughout your test suite. After performing an action, you can make assertions about which methods / attributes were used and arguments they were called with. You can also specify return values and set needed attributes in the normal way.
+
+Additionally, mock provides a patch() decorator that handles patching module and class level attributes within the scope of a test, along with sentinel for creating unique objects. See the quick guide for some examples of how to use Mock, MagicMock and patch().
+
+Mock is very easy to use and is designed for use with unittest. Mock is based on the ‘action -> assertion’ pattern instead of ‘record -> replay’ used by many mocking frameworks."
+
 # Why Write Unit Tests?
 Unit tests are 
 Let's ask Google: https://www.google.com/search?q=what's+the+value+of+unit+tests
@@ -29,7 +43,8 @@ pip install -r requirements.txt
 ```
 
 # TODO
-* Something for side effect
-* Test something that returns a generator
-* Put return_value, side_effect inside Mock() init
-* call_args_list
+* Patch decorators
+* Raising an exception with mock
+* patch.object and patch.dict
+* apply patch to TestCase class to mock the same thing in every test method (or start and stop)
+* Autospec: "If you pass autospec=True to patch then it does the patching with a real function object. This function object has the same signature as the one it is replacing, but delegates to a mock under the hood. You still get your mock auto-created in exactly the same way as before. What it means though, is that if you use it to patch out an unbound method on a class the mocked function will be turned into a bound method if it is fetched from an instance. It will have self passed in as the first argument, which is exactly what I wanted:"
