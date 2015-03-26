@@ -4,14 +4,17 @@ from datetime import datetime
 ABSOLUTE_ZERO_IN_F = -459.67
 
 
-class Box(object):
-    def __init__(self, food):
-        self.__food = food
+class Order(object):
+    def __init__(self, items=None):
+        self.__items = items if items else []
         self.__delivered_at = datetime.max
 
     @property
-    def food(self):
-        return self.__food
+    def items(self):
+        return self.__items
+
+    def add_item(self, item):
+        self.__items.append(item)
 
     @property
     def delivered_at(self):
@@ -48,9 +51,9 @@ class Pizza(object):
     def temperature(self, temp):
         self.__temperature = float(max(ABSOLUTE_ZERO_IN_F, temp))
 
-    def prepare(self):
+    def quick_order(self):
         self._cook()
-        return Box(self)
+        return Order([self])
 
     def _cook(self):
         while self.temperature < 500.0:

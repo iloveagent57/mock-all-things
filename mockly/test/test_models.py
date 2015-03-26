@@ -5,40 +5,49 @@ import mock
 
 from .common import MockDateTime
 
-from mockly.models import Box, Pizza, Topping, ABSOLUTE_ZERO_IN_F
+from mockly.models import Order, Pizza, Topping, ABSOLUTE_ZERO_IN_F
 
-class TestBox(unittest.TestCase):
+class TestOrder(unittest.TestCase):
     def test_initialize(self):
         # setup
-        food = mock.Mock() # we don't care what the food is, just want a reference to some object
+        pizza1 = mock.Mock() # we don't care what the food is, just want a reference to some object
+        pizza2 = mock.Mock()
 
         # method under test
-        box = Box(food)
+        order = Order(items=[pizza1, pizza2])
 
         # assertions
         # for assertEqual, the call convention is to pass in the expected value, then the actual value
         # (and then any message to be printed on failure)
-        self.assertEqual(food, box.food, msg='It puts the food in the basket.')
-        self.assertEqual(datetime.max, box.delivered_at, msg='It does this whenever it\'s told.')
+        self.assertEqual([pizza1, pizza2], order.items, msg='It puts the food in the basket.')
+        self.assertEqual(datetime.max, order.delivered_at, msg='It does this whenever it\'s told.')
 
-    def test_food_getter(self):
+    def test_items_getter(self):
         food = mock.Mock()
 
-        self.assertEqual(food, Box(food).food)
+        self.assertEqual([food], Order([food]).items)
+
+    def test_set_items(self):
+        food = mock.Mock()
+        order = Order()
+
+        order.add_item(food)
+
+        self.assertEqual([food], order.items)
 
     def test_delivered_at_getter(self):
         # we don't even care about storing a reference to food here
-        self.assertEqual(datetime.max, Box(mock.Mock()).delivered_at)
+        self.assertEqual(datetime.max, Order(mock.Mock()).delivered_at)
 
     def test_deliver(self):
         # we replace the models.datetime class with our own MockDateTime class
         with mock.patch('mockly.models.datetime', MockDateTime):
             food = mock.Mock()
-            box = Box(food)
+            order = Order([food])
 
-            box.deliver()
+            order.deliver()
 
-            self.assertEqual(MockDateTime.NOW, box.delivered_at)
+            self.assertEqual(MockDateTime.NOW, order.delivered_at)
 
 
 class TestPizza(unittest.TestCase):
@@ -75,26 +84,26 @@ class TestPizza(unittest.TestCase):
         pizza.temperature = -2000.0
         self.assertAlmostEqual(ABSOLUTE_ZERO_IN_F, pizza.temperature)
 
-    def test_prepare(self):
+    def test_quick_order(self):
         """
         We wrote some module code, we can use mock here to "wave away" that module,
         letting tests for that specific module run in other test functions.  We can focus
         on only the level of the prepare() method here, particularly on the order of operations,
         adhering to the contract of other function calls.
         """
-        with mock.patch('mockly.models.Box.__new__') as box_ctor:
+        with mock.patch('mockly.models.Order.__new__') as order_ctor:
             pizza = Pizza()
             pizza._cook = mock.Mock() # wave our hands about the _cook function
 
-            result = pizza.prepare()
+            result = pizza.quick_order()
 
             # First, we assert that _cook is called on our pizza object.
             pizza._cook.assert_called_once_with()
-            # Next, we assert that a new Box object is created, initialized with the pizza object
+            # Next, we assert that a new Order object is created, initialized with the pizza object
             # __new__ is called with the class as the first argument, then the arguments to __init__
-            box_ctor.assert_called_once_with(Box, pizza)
-            # Last, assert that the thing returned by prepare() is the result of Box.__new__
-            self.assertEqual(box_ctor.return_value, result)
+            order_ctor.assert_called_once_with(Order, [pizza])
+            # Last, assert that the thing returned by prepare() is the result of Order.__new__
+            self.assertEqual(order_ctor.return_value, result)
 
     def test_cook(self):
         """
