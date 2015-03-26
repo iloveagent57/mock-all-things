@@ -1,5 +1,7 @@
-import time
 from datetime import datetime
+import random
+import time
+
 
 ABSOLUTE_ZERO_IN_F = -459.67
 
@@ -73,3 +75,32 @@ class Topping(object):
     @name.setter
     def name(self, name):
         self.__name = name
+
+
+TOPPINGS = {
+    'worst': [Topping('Olive'), Topping('Feta')],
+    'weak': [Topping('Onion'), Topping('Pepper'), Topping('Mushroom'), Topping('Broccoli')],
+    'best': [Topping('Bacon'), Topping('Pepperoni'), Topping('Meatball'), Topping('Sausage'),
+             Topping('Ham'), Topping('MOAR CHEESE'), Topping('Anchovy'), Topping('Fried Egg')]
+}
+
+def pizza_party(num_pies=3):
+    for _ in xrange(num_pies):
+        yield construct_pizza()
+
+
+THRESHOLDS = {
+    'worst': 0.95,
+    'weak': 0.5,
+    'best': 0.05
+}
+
+def construct_pizza():
+    toppings = []
+    num = random.random()
+    for key, threshold in THRESHOLDS.iteritems():
+        if num >= threshold:
+            quantity = int((num - threshold) / 0.10) + 1
+            population = TOPPINGS[key]
+            toppings.extend(random.sample(population, min(len(population), quantity)))
+    return Pizza(*toppings)

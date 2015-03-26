@@ -5,7 +5,7 @@ import mock
 
 from .common import MockDateTime
 
-from mockly.models import Order, Pizza, Topping, ABSOLUTE_ZERO_IN_F
+from mockly.models import Order, Pizza, Topping, ABSOLUTE_ZERO_IN_F, pizza_party, construct_pizza
 
 class TestOrder(unittest.TestCase):
     def test_initialize(self):
@@ -137,3 +137,77 @@ class TestTopping(unittest.TestCase):
 
         topping.name = 'Fried Egg'
         self.assertEqual('Fried Egg', topping.name)
+
+
+class TestPartyTime(unittest.TestCase):
+    def test_pizza_party(self):
+        # Count on construct_pizza() being tested separately.
+        with mock.patch('mockly.models.construct_pizza') as construct_pizza:
+            p1, p2, p3 = mock.Mock(), mock.Mock(), mock.Mock()
+            # we can use the side_effect attribute of Mock() to specify the values returned
+            # by a mocked method in subsequent calls
+            construct_pizza.side_effect = [
+                p1, # returned the first time construct_pizza() is called
+                p2, # returned the first time construct_pizza() is called
+                p3  # returned the first time construct_pizza() is called
+            ]
+
+            # nothing in this method gets called until we actually iterate through the generator
+            # so we listify it
+            result = list(pizza_party())
+
+            self.assertEqual([p1, p2, p3], result)
+            construct_pizza.assert_has_calls([
+                mock.call(),
+                mock.call(),
+                mock.call()
+            ])
+
+    def test_construct_pizza(self):
+        # We want to be able to test predictable results, so we mock out randomness
+        with mock.patch('mockly.models.random.random') as random_number, \
+             mock.patch('mockly.models.random.sample') as random_sample, \
+             mock.patch('mockly.models.Pizza.__new__') as pizza_ctor:
+            # In the most complex case, we'll have a random number > 0.95.
+            # This should make a pie with 1 worst topping, 4 weak toppings,
+            # and 8 best toppings (not 9 b/c of the min of the list length
+            random_number.return_value = 0.95
+            bacon = Topping('Bacon')
+            pepperoni = Topping('Pepperoni')
+            meatball = Topping('Meatball')
+            sausage = Topping('Sausage')
+            ham = Topping('Ham')
+            moar_cheese = Topping('MOAR CHEESE')
+            anchovy = Topping('Anchovy')
+            egg = Topping('Fried Egg')
+            onion = Topping('Onion')
+            pepper = Topping('Pepper')
+            mushroom = Topping('Mushroom')
+            broccoli = Topping('Broccoli')
+            olive = Topping('olive')
+
+            def sample(pop, size):
+                # only include logic in here that you expect to be executed, otherwise we'll
+                # miss it in coverage report
+                if size == 1:
+                    return [olive]
+                elif size == 4:
+                    return [onion, pepper, mushroom, broccoli]
+                elif size == 8:
+                    return [bacon, pepperoni, meatball, sausage, ham, moar_cheese, anchovy, egg]
+
+            # can also specify behavior via a function with side_effect attribute
+            random_sample.side_effect = sample
+
+            pizza = construct_pizza()
+
+            # we can look at the arguments provided to the Pizza constructor
+            # first dimension - which call was it
+            # second dimension - 0 for args, 1 for kwargs
+            pizza_call_args = pizza_ctor.call_args_list[0][0]
+            self.assertEqual(Pizza, pizza_call_args[0]) # first arg to __new__ is class
+            # we can't control the order of the key, value pairs returned by iteritems,
+            # so just compare args as sets.  
+            self.assertEqual(set([olive, onion, pepper, mushroom, broccoli, bacon, pepperoni,
+                                  meatball, sausage, ham, moar_cheese, anchovy, egg]),
+                             set(pizza_call_args[1:]))
